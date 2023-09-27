@@ -31,10 +31,17 @@ header = [
     "Releases",
 ]
 writer.writerow(header)
-while i < 1000:
+
+endedFirstSearch = False
+while i < 1050:
+    starsFilter = ''
+    if (not endedFirstSearch):
+        starsFilter = '>1600'
+    else:
+        starsFilter = '1600..3042'
     query = """
             query {
-              search(query: "is:public stars:>1600 sort:stars language:java", type: REPOSITORY, first: 10, after: """ + end_cursor + """) {
+              search(query: "is:public stars:""" + starsFilter + """ sort:stars language:java", type: REPOSITORY, first: 50, after: """ + end_cursor + """) {
                 pageInfo{
                   hasNextPage
                   endCursor
@@ -63,7 +70,13 @@ while i < 1000:
     except:
       print("Falha! Tentando novamente...")
       continue
-    end_cursor = '"' + results["pageInfo"]["endCursor"] + '"'
+    
+    
+    hasNextPage = results["pageInfo"]["hasNextPage"]
+    if (hasNextPage):
+        end_cursor = '"' + results["pageInfo"]["endCursor"] + '"'
+    else:
+        endedFirstSearch = True
 
     variables["after"] = end_cursor
     repositories = results["nodes"]
@@ -91,6 +104,10 @@ while i < 1000:
         ]
         writer.writerow(row)
         i = i + 1
+    
+    if endedFirstSearch:
+        end_cursor = 'null'
+        
 
 print(15 * "-" + "FIM" + 15 * "-")
 
